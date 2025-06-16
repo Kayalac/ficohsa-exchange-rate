@@ -1,22 +1,25 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+import sys
 
-url = 'https://www.ficohsa.hn/'
-res = requests.get(url)
-soup = BeautifulSoup(res.text, 'html.parser')
+try:
+    url = 'https://www.ficohsa.hn/'
+    res = requests.get(url, timeout=10)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    span = soup.select_one('.gff-indicadores-divisas-v1__sale-value.value-one')
 
-# Encuentra el span con el tipo de cambio correcto
-span = soup.select_one('.gff-indicadores-divisas-v1__sale-value.value-one')
+    if not span:
+        raise Exception("No se encontró el selector. Puede haber cambiado la estructura de la página.")
 
-if not span:
-    raise Exception("No se pudo encontrar el tipo de cambio. El selector puede haber cambiado.")
+    rate = span.text.replace('L', '').strip().replace(',', '.')
+    data = {"exchangeRate": float(rate)}
 
-rate = span.text.replace('L', '').strip().replace(',', '.')
+    with open("cambio-ficohsa.json", "w") as f:
+        json.dump(data, f)
 
-data = {
-    "exchangeRate": float(rate)
-}
+    print("Cambio generado correctamente:", data)
 
-with open("cambio-ficohsa.json", "w") as f:
-    json.dump(data, f)
+except Exception as e:
+    print("Error:", e)
+    sys.exit(1)
