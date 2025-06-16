@@ -1,0 +1,32 @@
+name: Actualizar Tipo de Cambio Ficohsa
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # Todos los días a las 6:00 a.m. hora Honduras
+  workflow_dispatch:       # Permite ejecutarlo manualmente
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install requests beautifulsoup4
+
+      - name: Ejecutar scraper
+        run: python scraper.py
+
+      - name: Subir cambios
+        run: |
+          git config --global user.email "bot@github.com"
+          git config --global user.name "GitHub Bot"
+          git add cambio-ficohsa.json
+          git commit -m "Actualizar tipo de cambio"
+          git push
